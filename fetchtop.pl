@@ -6,7 +6,7 @@ use CGI;
 #use File::Slurp;
 
 $subLink = "starcraft";
-$numberToGet = 6;
+$numberToGet = 6; # maximum 20 - don't want to break anything (curls to first page only, only ≈20 posts on the first page.)
 
 $apiSource = `curl -s "https://api.reddit.com/r/$subLink.json"`;
 # prepare raw code for snipping
