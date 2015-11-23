@@ -1,9 +1,18 @@
-#!/usr/bin/perl
+#!/usr/bin/perlml
 
 use CGI;
 use File::Slurp;
+use DBI;
 
-$subreddit = "starcraft";
+BEGIN
+{
+	$cgi = new CGI;
+	$subreddit = $cgi->param("sub");
+	print $cgi->header(-type=>'text/html', -status=>'200 OK');
+	open(STDERR, ">&STDOUT");
+}
+
+$subreddit = read_file('subreddit.txt');
 
 for $i(1..20)
 {
@@ -28,13 +37,47 @@ for $i(1..20)
 		$starter = '"url": "http://'.$source;
 		($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
 		$content = "http://".$source."/".$content;
+		
+		#normal length = http://$source
+		# 7 + length($source) + 2(margin of error)
+		$contentLinkLength = 7 + length($source) + 2;
+		if($contentLinkLength >= length($content))
+		{
+			# we're missing stuff
+			#trying WWW and HTTPS '"
+			$starter = '"url": "https://www.'.$source;
+			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
+			$content = "http://".$source."/".$content;
+		}
+		if($contentLinkLength >= length($content))
+		{
+			# we're missing stuff
+			#trying HTTPS '"
+			$starter = '"url": "https://'.$source;
+			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
+			$content = "http://".$source."/".$content;
+		}
+		if($contentLinkLength >= length($content))
+		{
+			# we're missing stuff
+			#trying WWW'"
+			$starter = '"url": "http://www.'.$source;
+			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
+			$content = "http://".$source."/".$content;
+		}
 	}
-	$titleReg = '"title": ';
-	my ($title) = ($text =~ /$titleReg[^"]*"([^"]+)/);
-
-
+	$titleReg = '"quarantine": false, "title": ';
+	$text =~ s/", "/",�� "/g;
+	my ($title) = ($text =~ /$titleReg[^"]*"([^��]+)/);
+	$title =~ s/��//g;
+	$title =~ s/",//g;
+	
 	print $title."\n".$sourceType."\n".$content."\n\n\n";
-
+	
+	my $dbh = DBI->connect("DBI:mysql:database=github; host=localhost", "username", "password!", {'RaiseError' => 1});
+	my $sth = $dbh->prepare("INSERT INTO reddit (title, sub, content, sourcetype) VALUES (?, ?, ?, ?)");
+	$sth->execute($title, $subreddit, $content, $sourceType) or die "Couldn't execute statement: $DBI::errstr; stopped";
+	$dbh->disconnect();
 
 	if (-e "post". ($i+1). ".txt") { }
 	else { die "No more posts \n"; }
