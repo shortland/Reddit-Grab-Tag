@@ -1,4 +1,11 @@
 # Reddit-Grab-Tag
-Using Reddit’s API, the first script grabs the top posts from the defined subreddit. It seperates each post, and writes them into it's own file. The second script takes each file, grabs the necessary information (title, content, author) and inserts them into a database.
+Using Reddit’s API;
 
-Can definetely use a JSON parser to do this ugly cropping and snipping work... I thought this'd be easier though.
+Grabs top 6 (can be changed) posts within the past 24 hours (can be changed) of a 1 or multiple subreddits.
+
+After grabbing the page source, crops out each of the 6 posts into seperate files. 
+
+Grabs out the title, content, and other variables from the post.
+Inserts that information into the database so it can be more easily & quickly retrieved.
+
+fetch.pl grabs that data and spits it all out in some simple html. (you're meant to change that to your liking)
