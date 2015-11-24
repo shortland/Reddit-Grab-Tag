@@ -37,30 +37,21 @@ for $i(1..20)
 		$starter = '"url": "http://'.$source;
 		($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
 		$content = "http://".$source."/".$content;
-		
-		#normal length = http://$source
-		# 7 + length($source) + 2(margin of error)
 		$contentLinkLength = 7 + length($source) + 2;
 		if($contentLinkLength >= length($content))
 		{
-			# we're missing stuff
-			#trying WWW and HTTPS '"
 			$starter = '"url": "https://www.'.$source;
 			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
 			$content = "http://".$source."/".$content;
 		}
 		if($contentLinkLength >= length($content))
 		{
-			# we're missing stuff
-			#trying HTTPS '"
 			$starter = '"url": "https://'.$source;
 			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
 			$content = "http://".$source."/".$content;
 		}
 		if($contentLinkLength >= length($content))
 		{
-			# we're missing stuff
-			#trying WWW'"
 			$starter = '"url": "http://www.'.$source;
 			($content) = ($text =~ /$starter[^\/]*\/([^"]+)/);
 			$content = "http://".$source."/".$content;
@@ -71,12 +62,14 @@ for $i(1..20)
 	my ($title) = ($text =~ /$titleReg[^"]*"([^��]+)/);
 	$title =~ s/��//g;
 	$title =~ s/",//g;
-	
-	print $title."\n".$sourceType."\n".$content."\n\n\n";
-	
+	$content =~ s/HASHTAGHASHTAG/#/g;
+
+	$permaRack = ', "permalink": ';
+	my ($permalink) = ($text =~ /$permaRack[^"]*"([^"]+)/);
+
 	my $dbh = DBI->connect("DBI:mysql:database=github; host=localhost", "username", "password!", {'RaiseError' => 1});
-	my $sth = $dbh->prepare("INSERT INTO reddit (title, sub, content, sourcetype) VALUES (?, ?, ?, ?)");
-	$sth->execute($title, $subreddit, $content, $sourceType) or die "Couldn't execute statement: $DBI::errstr; stopped";
+	my $sth = $dbh->prepare("INSERT INTO reddit (title, sub, content, sourcetype, origin) VALUES (?, ?, ?, ?, ?)");
+	$sth->execute($title, $subreddit, $content, $sourceType, $permalink) or die "Couldn't execute statement: $DBI::errstr; stopped";
 	$dbh->disconnect();
 
 	if (-e "post". ($i+1). ".txt") { }
