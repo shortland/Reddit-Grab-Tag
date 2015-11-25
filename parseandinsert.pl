@@ -63,6 +63,9 @@ for $i(1..20)
 	$title =~ s/��//g;
 	$title =~ s/",//g;
 	$content =~ s/HASHTAGHASHTAG/#/g;
+	$content =~ s/DOUBLESTARDOUBLESTAR/**/g;
+	$content =~ s/CLOSEBRAKETCLOSEBRAKET/]]/g;
+	$content =~ s/OPENBRAKETOPENBRAKET/[[/g;
 
 	$permaRack = ', "permalink": ';
 	my ($permalink) = ($text =~ /$permaRack[^"]*"([^"]+)/);
