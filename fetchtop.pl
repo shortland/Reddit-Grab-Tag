@@ -8,16 +8,18 @@ use File::Slurp;
 BEGIN
 {
 	$cgi = new CGI;
-	print $cgi->header(-type=>'text/html', -status=>'200 OK');
+	$sub = $cgi->param("sub");
+	print $cgi->header(-type=>'text', -status=>'200 OK');
 	open(STDERR, ">&STDOUT");
 }
-
+$redocount = 0;
+$redocount++;
+REDOIT:
 $subLink = read_file('subreddit.txt');
-$numberToGet = 6; # maximum 20 - don't want to break anything (curls to first page only, only ≈20 posts on the first page.)
-#https://www.reddit.com/r/starcraft/top/?sort=top&t=day
-$apiSource = `curl -s "https://api.reddit.com/r/$subLink/top/?t=day"`;
-# prepare raw code for snipping
-$apiSource =~ s/}}, {"kind":/}}, µ {"kind":/g;
+$numberToGet = 10;
+$apiSource = `curl -s "https://api.reddit.com/r/$sub/top/?t=day"`;
+
+$apiSource =~ s/}}, {"kind":/}}, § {"kind":/g;
 $special = '{"kind": "t3"';
 
 print snipper($apiSource, 1);
@@ -31,14 +33,34 @@ my ($apiSource, $done) = @_;
 		$apiSource =~ s/\[/OPENBRAKETOPENBRAKET/g;
 		$apiSource =~ s/\]/CLOSEBRAKETCLOSEBRAKET/g;
 
-		my ($aPost) = ($apiSource =~ /$special[^,]*,([^µ]+)/);
+		my ($aPost) = ($apiSource =~ /$special[^,]*,([^§]+)/);
+
+		if(($aPost =~ "")||(!defined $aPost))
+		{
+			if($redocount =~ 10)
+			{
+				die "unable to fetch.\n";
+			}
+			else
+			{
+				goto REDOIT;
+			}
+		}
+		else
+		{
+			print "returned something.> $aPost <";
+		}
 
 		open(my $fh, '>', 'post' . $done . '.txt');
 		print $fh $aPost;
 		close $fh;
-		$apiSource = "Ωµ".$apiSource;
+		#print $aPost;
 
-		$apiSource =~ s/Ω[^µ]*µ([^µ]+)/Ω/;
+		#die "here\n";
+
+		$apiSource = "Ω§".$apiSource;
+
+		$apiSource =~ s/Ω[^§]*§([^§]+)/Ω/;
 		$done = $done + 1;
 
 		if($done =~ ($numberToGet + 1))
@@ -48,12 +70,12 @@ my ($apiSource, $done) = @_;
 		else
 		{
 NOTDONEYET:
-			my ($aPost) = ($apiSource =~ /Ω[^µ]*µ([^µ]+)/);
+			my ($aPost) = ($apiSource =~ /Ω[^§]*§([^§]+)/);
 			open(my $fh, '>', 'post' . $done . '.txt');
 			print $fh $aPost;
 			close $fh;
 			$done = $done + 1;
-			$apiSource =~ s/Ω[^µ]*µ([^µ]+)/Ω/;
+			$apiSource =~ s/Ω[^§]*§([^§]+)/Ω/;
 			if($done =~ ($numberToGet + 1))
 			{
 				return "caught em all".($done - 1)

@@ -75,7 +75,11 @@ for $i(1..20)
 	$permaRack = ', "permalink": ';
 	my ($permalink) = ($text =~ /$permaRack[^"]*"([^"]+)/);
 
-	my $dbh = DBI->connect("DBI:mysql:database=github; host=localhost", "username", "password!", {'RaiseError' => 1});
+	if(!defined $content)
+	{
+		$content = "...No Content...";
+	}
+	my $dbh = DBI->connect("DBI:mysql:database=github; host=localhost", "Elongation", "LegoApril181998!", {'RaiseError' => 1});
 	my $sth = $dbh->prepare("INSERT INTO reddit (title, sub, content, sourcetype, origin) VALUES (?, ?, ?, ?, ?)");
 	$sth->execute($title, $subreddit, $content, $sourceType, $permalink) or die "Couldn't execute statement: $DBI::errstr; stopped";
 	$dbh->disconnect();
