@@ -1,7 +1,10 @@
 # Reddit-Grab-Tag
+
+# No longer works. I also made this before I knew what JSON was and how to handle it. I am looking foward to rewriting this eventually :)
+
 Using Reddit’s API;
 
-Working example: http://ilankleiman.com/newsfeed/fetch.pl
+~Working example: http://ilankleiman.com/newsfeed/fetch.pl~
 
 Basically functions as a simplified "front" page; I'm not sure about most people, but I'm subscribed to a lot of subreddits, hence my front page is useless and basically acts like an "all" page. Which is why I initially made this.
 
